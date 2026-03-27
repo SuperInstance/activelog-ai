@@ -1,4 +1,4 @@
-name = "log-origin"
+name = "activelog-ai"
 main = "worker/index.ts"
 compatibility_date = "2025-03-01"
 compatibility_flags = ["nodejs_compat"]
@@ -8,7 +8,7 @@ directory = "./web"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "log-origin-db"
+database_name = "activelog-ai"
 database_id = "1d51f13d-fb6a-4eee-8f98-09a1222edea3"
 
 [[kv_namespaces]]
