@@ -17,8 +17,8 @@ import preferenceRoutes from './routes/preferences.js';
 import healthRoutes from './routes/health.js';
 import metricsRoutes from './routes/metrics.js';
 import configRoutes from './routes/config.js';
-import dmlogRoutes from './routes/dmlog.js';
-import { getThemeCSS } from './dmlog-config.js';
+import appRoutes from ./routes/app-routes.js';
+import { getThemeCSS } from './app-config.js';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -44,7 +44,7 @@ protectedApi.route('/providers', providerRoutes);
 protectedApi.route('/preferences', preferenceRoutes);
 protectedApi.route('/metrics', metricsRoutes);
 protectedApi.route('/config', configRoutes);
-protectedApi.route('/dmlog', dmlogRoutes);
+protectedApi.route('/dmlog', appRoutes);
 app.route('/v1', protectedApi);
 
 app.get('/', (c) => c.json({ name: c.env.THEME === 'dmlog' ? 'dmlog-ai' : 'log-origin', version: '0.1.0' }));

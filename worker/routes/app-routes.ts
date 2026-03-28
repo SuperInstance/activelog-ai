@@ -3,12 +3,12 @@
  */
 import { Hono } from 'hono';
 import type { Env, Variables } from '../../src/types.js';
-import { getThemeCSS, getRoutingRules, getTemplate } from '../dmlog-config.js';
+import { getThemeCSS, getRoutingRules, getTemplate } from '../app-config.js';
 
-const dmlogRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
+const appRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // Serve theme CSS
-dmlogRoutes.get('/theme.css', async (c) => {
+appRoutes.get('/theme.css', async (c) => {
   const theme = await getThemeCSS(c.env);
   if (!theme) {
     return c.json({ error: 'Theme not found' }, 404);
@@ -17,13 +17,13 @@ dmlogRoutes.get('/theme.css', async (c) => {
 });
 
 // Get routing rules
-dmlogRoutes.get('/rules', async (c) => {
+appRoutes.get('/rules', async (c) => {
   const rules = await getRoutingRules(c.env);
   return c.json({ rules });
 });
 
 // Get template by key
-dmlogRoutes.get('/templates/:key', async (c) => {
+appRoutes.get('/templates/:key', async (c) => {
   const key = c.req.param('key');
   const template = await getTemplate(key, c.env);
   if (!template) {
@@ -33,7 +33,7 @@ dmlogRoutes.get('/templates/:key', async (c) => {
 });
 
 // List available templates
-dmlogRoutes.get('/templates', async (c) => {
+appRoutes.get('/templates', async (c) => {
   // This would need to be implemented to scan the templates directory
   const templates = [
     { key: 'dnd_character', name: 'Character Creation', icon: '🧙', description: 'Generate a full D&D 5e character sheet with backstory' },
@@ -48,4 +48,4 @@ dmlogRoutes.get('/templates', async (c) => {
   return c.json({ templates });
 });
 
-export default dmlogRoutes;
+export default appRoutes;
