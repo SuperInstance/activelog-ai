@@ -1,80 +1,77 @@
-// activelog.ai — Activity/Fitness Tracker
+import { loadBYOKConfig, saveBYOKConfig, callLLM, generateSetupHTML, getBuiltinProviders } from './lib/byok.js';
 
-export interface Env { ACTIVELOG_KV: KVNamespace }
+const BRAND = '#22c55e';
+const NAME = 'ActiveLog.ai';
+const TAGLINE = 'Train Smarter';
 
-import { loadBYOKConfig, callLLM, generateSetupHTML } from './lib/byok.js';
+const FEATURES = [
+  { icon: '💪', title: 'Workout Tracking', desc: 'Log exercises, sets, reps, and personal records' },
+  { icon: '🔄', title: 'OpenMAIC Routines', desc: 'AI-generated workout routines that adapt to your progress' },
+  { icon: '🏃', title: 'Training Sessions', desc: 'Track and analyze your training sessions over time' },
+  { icon: '🧠', title: 'AI Coach', desc: 'Personalized coaching with form tips and periodization' },
+  { icon: '🔑', title: 'Multi-Provider BYOK', desc: 'Bring OpenAI, Anthropic, DeepSeek, or any OpenAI-compatible provider' },
+];
+
+function landingHTML(): string {
+  const featureCards = FEATURES.map(f =>
+    `<div class="feature"><div class="feat-icon">${f.icon}</div><div class="feat-title">${f.title}</div><div class="feat-desc">${f.desc}</div></div>`
+  ).join('');
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${NAME} — ${TAGLINE}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0a0a1a;color:#e0e0e0;font-family:'Inter',system-ui,sans-serif}
+.hero{text-align:center;padding:4rem 1rem 2rem;max-width:800px;margin:0 auto}
+.hero h1{font-size:2.5rem;color:${BRAND};margin-bottom:.5rem}.hero p{color:#888;font-size:1.1rem}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;max-width:800px;margin:2rem auto;padding:0 1rem}
+.feature{background:#1a1a2e;border-radius:12px;padding:1.5rem;border:1px solid #222}
+.feat-icon{font-size:2rem;margin-bottom:.5rem}.feat-title{font-weight:700;margin-bottom:.25rem}.feat-desc{color:#888;font-size:.85rem}
+.cta{text-align:center;padding:2rem 1rem 4rem}.cta a{background:${BRAND};color:#fff;text-decoration:none;padding:.75rem 2rem;border-radius:8px;font-weight:700}
+</style></head><body><div class="hero"><h1>🏋️ ${NAME}</h1><p>${TAGLINE}</p></div>
+<div class="features">${featureCards}</div><div class="cta"><a href="/setup">Get Started</a></div></body></html>`;
+}
 
 const CSP = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*;";
 
-const FEATURES = [
-  { title: 'Workout Tracking', desc: 'Log workouts with sets, reps, duration, and intensity.' },
-  { title: 'Activity Dashboard', desc: 'See your daily, weekly, and monthly activity at a glance.' },
-  { title: 'AI Coaching', desc: 'Get personalized coaching and workout suggestions via BYOK.' },
-  { title: 'Wearable Sync', desc: 'Connect to Wearable APIs for automatic activity import.' },
-];
-
-function landing(): string {
-  const features = FEATURES.map(f => `<div class="card"><h3>${f.title}</h3><p>${f.desc}</p></div>`).join('\n');
-  return `<!DOCTYPE html><html><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width">
-<title>ActiveLog.ai — Move More, Know More</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:system-ui;background:#0a0a1a;color:#e0e0e0}
-.hero{background:linear-gradient(135deg,#22c55e,#0a1628);padding:4rem 2rem;text-align:center}
-.hero h1{font-size:3rem;background:linear-gradient(90deg,#86efac,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem}
-.hero p{color:#8899bb;font-size:1.1rem;max-width:600px;margin:0 auto 2rem}
-.cta{display:inline-block;background:#22c55e;color:#0a0a1a;padding:0.8rem 2rem;border-radius:8px;font-weight:bold;text-decoration:none;margin-top:1rem}
-.cta:hover{transform:scale(1.05)}
-.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;max-width:900px;margin:3rem auto;padding:0 2rem}
-.card{background:#111;border:1px solid #1e2a4a;border-radius:12px;padding:1.5rem}
-.card h3{color:#22c55e;margin-bottom:.5rem}
-.card p{color:#667;font-size:.9rem}
-.footer{text-align:center;padding:2rem;color:#334;font-size:.8rem;border-top:1px solid #111}
-</style></head><body>
-<div class="hero">
-  <h1>ActiveLog.ai</h1>
-  <p>Move more, know more. Track workouts, activities, and health metrics with AI coaching.</p>
-  <a href="/setup" class="cta">Get Started</a>
-</div>
-<div class="features">${features}</div>
-<div class="footer">ActiveLog.ai — Built by Superinstance · Part of the Cocapn Ecosystem</div>
-</body></html>`;
-}
-
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: any): Promise<Response> {
     const url = new URL(request.url);
-    const htmlHeaders = { 'Content-Type': 'text/html;charset=utf-8', 'Content-Security-Policy': CSP };
-    const jsonHeaders = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
+    const headers = { 'Content-Type': 'text/html;charset=utf-8', 'Content-Security-Policy': CSP };
+    const jsonHeaders = { 'Content-Type': 'application/json' };
 
-    if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', service: 'activelog.ai' }, null, 2), { headers: jsonHeaders });
-    }
+    if (url.pathname === '/') return new Response(landingHTML(), { headers });
+    if (url.pathname === '/health') return new Response(JSON.stringify({ status: 'ok', service: NAME }), { headers: jsonHeaders });
+    if (url.pathname === '/setup') return new Response(generateSetupHTML(NAME, BRAND), { headers });
 
-    if (url.pathname === '/setup') {
-      return new Response(generateSetupHTML('ActiveLog.ai', '#22c55e'), { headers: htmlHeaders });
+    if (url.pathname === '/api/byok/config') {
+      if (request.method === 'GET') {
+        const config = await loadBYOKConfig(request, env);
+        return new Response(JSON.stringify(config), { headers: jsonHeaders });
+      }
+      if (request.method === 'POST') {
+        const config = await request.json();
+        await saveBYOKConfig(config, request, env);
+        return new Response(JSON.stringify({ saved: true }), { headers: jsonHeaders });
+      }
     }
 
     if (url.pathname === '/api/chat' && request.method === 'POST') {
-      const config = await loadBYOKConfig(request, { KV: env.ACTIVELOG_KV });
-      if (!config) return new Response(JSON.stringify({ error: 'No BYOK config. Visit /setup' }), { status: 401, headers: jsonHeaders });
-      const body = await request.json() as { messages: any[] };
-      return callLLM(config, body.messages);
+      const config = await loadBYOKConfig(request, env);
+      if (!config) return new Response(JSON.stringify({ error: 'No provider configured. Visit /setup' }), { status: 401, headers: jsonHeaders });
+      const body = await request.json();
+      return callLLM(config, body.messages || [], { stream: body.stream, maxTokens: body.maxTokens, temperature: body.temperature });
     }
 
-    if (url.pathname === '/api/activities') {
-      return new Response(JSON.stringify({ activities: [], total: 0 }), { headers: jsonHeaders });
+    const stubRoutes: Record<string, string> = {
+      '/api/activities': 'Activity logging',
+      '/api/workouts': 'Workout management',
+      '/api/routines': 'OpenMAIC routine generation',
+      '/api/stats': 'Performance statistics',
+    };
+    if (stubRoutes[url.pathname]) {
+      return new Response(JSON.stringify({ service: NAME, endpoint: url.pathname, message: stubRoutes[url.pathname] }), { headers: jsonHeaders });
     }
 
-    if (url.pathname === '/api/workouts') {
-      return new Response(JSON.stringify({ workouts: [], total: 0 }), { headers: jsonHeaders });
-    }
-
-    if (url.pathname === '/api/stats') {
-      return new Response(JSON.stringify({ totalWorkouts: 0, totalMinutes: 0, streak: 0 }), { headers: jsonHeaders });
-    }
-
-    return new Response(landing(), { headers: htmlHeaders });
+    return new Response('Not Found', { status: 404 });
   },
-};
+} satisfies ExportedHandler<Env>;
