@@ -1,4 +1,6 @@
 import { loadBYOKConfig, saveBYOKConfig, callLLM, generateSetupHTML } from './lib/byok.js';
+import { deadbandCheck, deadbandStore, getEfficiencyStats } from './lib/deadband.js';
+import { logResponse } from './lib/response-logger.js';
 
 const BRAND = '#22c55e';
 const NAME = 'ActiveLog.ai';
