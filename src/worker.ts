@@ -1,4 +1,4 @@
-import { loadBYOKConfig, saveBYOKConfig, callLLM, generateSetupHTML, getBuiltinProviders } from './lib/byok.js';
+import { loadBYOKConfig, saveBYOKConfig, callLLM, generateSetupHTML } from './lib/byok.js';
 
 const BRAND = '#22c55e';
 const NAME = 'ActiveLog.ai';
@@ -11,6 +11,17 @@ const FEATURES = [
   { icon: '🧠', title: 'AI Coach', desc: 'Personalized coaching with form tips and periodization' },
   { icon: '🔑', title: 'Multi-Provider BYOK', desc: 'Bring OpenAI, Anthropic, DeepSeek, or any OpenAI-compatible provider' },
 ];
+
+const SEED_DATA = {
+  training: {
+    frameworks: ['Linear Periodization', 'Undulating Periodization', 'Conjugate Method', '5/3/1', 'Hypertrophy-Specific Training', 'HIIT', 'Zone 2 Base Building'],
+    muscleGroups: ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quads', 'Hamstrings', 'Glutes', 'Core', 'Calves'],
+    principles: ['Progressive Overload', 'Specificity', 'Recovery', 'Volume Management', 'Intensity Management', 'Deload'],
+    sportSpecific: ['Powerlifting', 'Olympic Lifting', 'CrossFit', 'Running', 'Cycling', 'Swimming', 'Martial Arts', 'Team Sports'],
+  },
+};
+
+const FLEET = { name: NAME, tier: 2, domain: 'athletics-training', fleetVersion: '2.0.0', builtBy: 'Superinstance & Lucineer (DiGennaro et al.)' };
 
 function landingHTML(): string {
   const featureCards = FEATURES.map(f =>
@@ -33,6 +44,12 @@ function landingHTML(): string {
 
 const CSP = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*;";
 
+function confidenceScore(context: string): number {
+  const cues = ['sets', 'reps', 'weight', 'PR', '1RM', 'volume', 'RPE', 'heart rate', 'pace', 'periodization'];
+  const hits = cues.filter(c => context.toLowerCase().includes(c)).length;
+  return Math.min(0.5 + hits * 0.08, 1.0);
+}
+
 export default {
   async fetch(request: Request, env: any): Promise<Response> {
     const url = new URL(request.url);
@@ -40,8 +57,12 @@ export default {
     const jsonHeaders = { 'Content-Type': 'application/json' };
 
     if (url.pathname === '/') return new Response(landingHTML(), { headers });
-    if (url.pathname === '/health') return new Response(JSON.stringify({ status: 'ok', service: NAME }), { headers: jsonHeaders });
+    if (url.pathname === '/health') return new Response(JSON.stringify({ status: 'ok', service: NAME, fleet: FLEET }), { headers: jsonHeaders });
     if (url.pathname === '/setup') return new Response(generateSetupHTML(NAME, BRAND), { headers });
+
+    if (url.pathname === '/api/seed') {
+      return new Response(JSON.stringify({ service: NAME, seed: SEED_DATA }, null, 2), { headers: jsonHeaders });
+    }
 
     if (url.pathname === '/api/byok/config') {
       if (request.method === 'GET') {
@@ -59,17 +80,54 @@ export default {
       const config = await loadBYOKConfig(request, env);
       if (!config) return new Response(JSON.stringify({ error: 'No provider configured. Visit /setup' }), { status: 401, headers: jsonHeaders });
       const body = await request.json();
+      const lastMsg = (body.messages || []).slice(-1)[0]?.content || '';
+      const conf = confidenceScore(lastMsg);
+      if (env?.ACTIVELOG_KV) {
+        try {
+          await env.ACTIVELOG_KV.put(`chat:${Date.now()}`, JSON.stringify({ summary: lastMsg.slice(0, 200), confidence: conf, ts: new Date().toISOString() }), { expirationTtl: 86400 });
+        } catch {}
+      }
       return callLLM(config, body.messages || [], { stream: body.stream, maxTokens: body.maxTokens, temperature: body.temperature });
     }
 
-    const stubRoutes: Record<string, string> = {
-      '/api/activities': 'Activity logging',
-      '/api/workouts': 'Workout management',
-      '/api/routines': 'OpenMAIC routine generation',
-      '/api/stats': 'Performance statistics',
-    };
-    if (stubRoutes[url.pathname]) {
-      return new Response(JSON.stringify({ service: NAME, endpoint: url.pathname, message: stubRoutes[url.pathname] }), { headers: jsonHeaders });
+    // ── Routines (OpenMAIC-generated) ──
+    if (url.pathname === '/api/routines') {
+      if (request.method === 'POST') {
+        const data = await request.json();
+        const routine = { id: Date.now().toString(36), ...data, createdAt: new Date().toISOString() };
+        if (env?.ACTIVELOG_KV) {
+          const routines = JSON.parse(await env.ACTIVELOG_KV.get('routines') || '[]');
+          routines.push(routine);
+          await env.ACTIVELOG_KV.put('routines', JSON.stringify(routines));
+        }
+        return new Response(JSON.stringify({ routine }), { headers: jsonHeaders });
+      }
+      const routines = env?.ACTIVELOG_KV ? JSON.parse(await env.ACTIVELOG_KV.get('routines') || '[]') : [];
+      return new Response(JSON.stringify({ routines }), { headers: jsonHeaders });
+    }
+
+    // ── Workouts ──
+    if (url.pathname === '/api/workouts') {
+      if (request.method === 'POST') {
+        const data = await request.json();
+        const workout = { id: Date.now().toString(36), ...data, createdAt: new Date().toISOString() };
+        if (env?.ACTIVELOG_KV) {
+          const workouts = JSON.parse(await env.ACTIVELOG_KV.get('workouts') || '[]');
+          workouts.push(workout);
+          await env.ACTIVELOG_KV.put('workouts', JSON.stringify(workouts));
+        }
+        return new Response(JSON.stringify({ workout }), { headers: jsonHeaders });
+      }
+      const workouts = env?.ACTIVELOG_KV ? JSON.parse(await env.ACTIVELOG_KV.get('workouts') || '[]') : [];
+      return new Response(JSON.stringify({ workouts }), { headers: jsonHeaders });
+    }
+
+    // ── Activities & Stats stubs ──
+    if (url.pathname === '/api/activities') {
+      return new Response(JSON.stringify({ service: NAME, endpoint: '/api/activities', message: 'Activity logging — coming soon' }), { headers: jsonHeaders });
+    }
+    if (url.pathname === '/api/stats') {
+      return new Response(JSON.stringify({ service: NAME, endpoint: '/api/stats', message: 'Performance statistics — coming soon' }), { headers: jsonHeaders });
     }
 
     return new Response('Not Found', { status: 404 });
