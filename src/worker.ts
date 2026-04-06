@@ -137,7 +137,7 @@ function landingHTML(): string {
 </div>
 
 <div class="footer">${NAME} — Built by Superinstance & Lucineer (DiGennaro et al.) · Part of the Cocapn Fleet</div>
-</body></html>`;
+<div style="text-align:center;padding:24px;color:#475569;font-size:.75rem"><a href="https://the-fleet.casey-digennaro.workers.dev" style="color:#64748b">⚓ The Fleet</a> · <a href="https://cocapn.ai" style="color:#64748b">Cocapn</a></div></body></html>`;
 }
 
 export default {
