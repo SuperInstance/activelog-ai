@@ -6,9 +6,17 @@
   "category": "lifestyle",
   "description": "AI-powered Activelog companion",
   "icon": "ship",
-  "endpoints": ["/", "/health", "/vessel.json"],
+  "endpoints": [
+    "/",
+    "/health",
+    "/vessel.json"
+  ],
   "deployment": {
     "platform": "cloudflare-workers",
     "url": "https://activelog-ai.casey-digennaro.workers.dev"
-  }
+  },
+  "capabilities": [
+    "fitness-tracking",
+    "workout-logging"
+  ]
 }
