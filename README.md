@@ -52,3 +52,9 @@ A stateless agent on Cloudflare Workers. It uses a knowledge graph to connect tr
 ---
 
 <div style="text-align:center;padding:16px;color:#64748b;font-size:.8rem"><a href="https://the-fleet.casey-digennaro.workers.dev" style="color:#64748b">The Fleet</a> &middot; <a href="https://cocapn.ai" style="color:#64748b">Cocapn</a></div>
+
+---
+
+<i>Built with [Cocapn](https://github.com/Lucineer/cocapn-ai) — the open-source agent runtime.</i>
+<i>Part of the [Lucineer fleet](https://github.com/Lucineer)</i>
+
