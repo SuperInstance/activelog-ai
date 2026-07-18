@@ -1,0 +1,29 @@
+name = "activelog-ai"
+main = "worker/src/index.ts"
+compatibility_date = "2026-07-18"
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "activelog"
+database_id = "placeholder-create-with-wrangler"
+
+# Vectorize Index
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "activelog-embeddings"
+dimensions = 384
+
+# R2 Bucket (for audio exports)
+[[r2_buckets]]
+binding = "AUDIO_BUCKET"
+bucket_name = "activelog-audio"
+
+# Workers AI (for Whisper fallback + embeddings)
+[ai]
+binding = "AI"
+
+# Routes
+routes = [
+  { pattern = "activelog.ai/*", zone_name = "activelog.ai" }
+]

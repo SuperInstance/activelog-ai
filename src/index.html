@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ActiveLog.Ai</title>
+<style>
+  :root {
+    --bg: #070b14;
+    --panel: #0f1726;
+    --panel-2: #141d30;
+    --border: #1e293b;
+    --accent: #06b6d4;
+    --accent-dim: #0e7490;
+    --accent-glow: rgba(6,182,212,0.2);
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --recording: #ef4444;
+    --recording-glow: rgba(239,68,68,0.3);
+    --tag-catch: #84cc16;
+    --tag-maint: #f59e0b;
+    --tag-weather: #0ea5e9;
+    --tag-important: #ec4899;
+    --ok: #10b981;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ───────────────────────────── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(7,11,20,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--text-dim); font-weight: 400; }
+  .sync-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+  .sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ok);
+  }
+  .sync-dot.offline { background: var(--text-dim); }
+  .sync-dot.syncing { background: var(--accent); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+
+  /* ── Views ────────────────────────────── */
+  .view { display: none; padding: 16px; }
+  .view.active { display: block; }
+
+  /* ── Record View ──────────────────────── */
+  .record-container {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+  .record-button {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid var(--border);
+    background: var(--panel);
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.3s;
+    position: relative;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .record-button:active {
+    transform: scale(0.95);
+  }
+  .record-button.recording {
+    border-color: var(--recording);
+    color: var(--recording);
+    background: var(--panel-2);
+    box-shadow: 0 0 40px var(--recording-glow);
+    animation: record-pulse 2s infinite;
+  }
+  @keyframes record-pulse {
+    0%, 100% { box-shadow: 0 0 40px var(--recording-glow); }
+    50% { box-shadow: 0 0 20px var(--recording-glow); }
+  }
+  .record-button .icon { font-size: 2.5rem; }
+  .record-button.recording .icon { font-size: 2rem; }
+
+  .session-info {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.875rem;
+  }
+  .session-timer {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -1px;
+  }
+  .session-meta {
+    margin-top: 4px;
+  }
+
+  /* Audio Level Meter */
+  .audio-meter {
+    width: 200px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .audio-meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--recording));
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.1s;
+  }
+
+  /* Voice Tag Buttons */
+  .voice-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 400px;
+  }
+  .tag-btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .tag-btn:active { transform: scale(0.95); }
+  .tag-btn.tagged {
+    background: var(--accent-dim);
+    color: white;
+    border-color: var(--accent);
+  }
+  .tag-btn.tag-catch { border-color: var(--tag-catch); color: var(--tag-catch); }
+
+  /* ── Live Transcript ──────────────────── */
+  .transcript-live {
+    width: 100%;
+    max-width: 700px;
+    max-height: 300px;
+    overflow-y: auto;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  .transcript-interim {
+    color: var(--text-dim);
+    font-style: italic;
+  }
+  .transcript-annotation {
+    margin: 8px 0;
+    padding: 6px 10px;
+    background: var(--panel-2);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: var(--accent);
+  }
+  .transcript-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-right: 4px;
+    font-weight: 500;
+  }
+  .transcript-tag.tag-catch { background: rgba(132,204,22,0.15); color: var(--tag-catch); }
+  .transcript-tag.tag-maint { background: rgba(245,158,11,0.15); color: var(--tag-maint); }
+  .transcript-tag.tag-weather { background: rgba(14,165,233,0.15); color: var(--tag-weather); }
+  .transcript-tag.tag-important { background: rgba(236,72,153,0.15); color: var(--tag-important); }
+
+  /* ── Sessions View ────────────────────── */
+  .session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .session-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .session-card:active { border-color: var(--accent); }
+  .session-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 8px;
+  }
+  .session-card-title { font-weight: 600; font-size: 0.9rem; }
+  .session-card-date { font-size: 0.75rem; color: var(--text-dim); }
+  .session-card-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    flex-wrap: wrap;
+  }
+  .session-card-meta span { display: flex; align-items: center; gap: 3px; }
+  .session-card-preview {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .session-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+
+  /* ── Session Detail ───────────────────── */
+  .session-detail {
+    max-width: 700px;
+  }
+  .session-detail-header {
+    margin-bottom: 16px;
+  }
+  .session-detail-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  .session-detail-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+  .session-transcript {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    line-height: 1.7;
+    font-size: 0.9rem;
+  }
+  .session-transcript p { margin-bottom: 8px; }
+
+  /* ── Bottom Nav ───────────────────────── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(7,11,20,0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0;
+    z-index: 50;
+  }
+  .nav-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.65rem;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .nav-btn:active { color: var(--accent); }
+  .nav-btn.active { color: var(--accent); }
+  .nav-btn .icon { font-size: 1.3rem; }
+
+  /* ── Settings ─────────────────────────── */
+  .settings-group {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .settings-group h3 { font-size: 0.9rem; margin-bottom: 12px; }
+  .setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.875rem;
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-row input, .setting-row select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    width: 100px;
+    text-align: right;
+  }
+  .toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(20px); }
+
+  /* ── Search ───────────────────────────── */
+  .search-bar {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+  }
+  .search-bar:focus { outline: none; border-color: var(--accent); }
+  .search-results { display: flex; flex-direction: column; gap: 8px; }
+
+  /* ── Toast ────────────────────────────── */
+  .toast {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel-2);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── Empty State ──────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+
+  /* Responsive */
+  @media (min-width: 768px) {
+    .view { max-width: 800px; margin: 0 auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">ActiveLog<span>.Ai</span></div>
+  <div class="sync-status">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-label">Online</span>
+  </div>
+</div>
+
+<!-- ── Record View ────────────────────────── -->
+<div class="view active" id="view-record">
+  <div class="record-container">
+    <div class="session-info" id="pre-session">
+      <div style="font-size:1.1rem;color:var(--text)">Press to start logging</div>
+      <div style="margin-top:4px">Transcript will include GPS + time annotations every 60 seconds</div>
+    </div>
+
+    <div class="session-info" id="active-session" style="display:none">
+      <div class="session-timer" id="session-timer">00:00:00</div>
+      <div class="session-meta" id="session-meta">No GPS fix yet</div>
+    </div>
+
+    <button class="record-button" id="record-btn" onclick="toggleRecording()">
+      <span class="icon">🎤</span>
+      <span id="record-label">START</span>
+    </button>
+
+    <div class="audio-meter" id="audio-meter-wrap" style="display:none">
+      <div class="audio-meter-fill" id="audio-meter"></div>
+    </div>
+
+    <div class="voice-tags" id="voice-tags" style="display:none">
+      <button class="tag-btn" onclick="voiceTag('catch')">🐟 Catch</button>
+      <button class="tag-btn" onclick="voiceTag('maintenance')">🔧 Maintenance</button>
+      <button class="tag-btn" onclick="voiceTag('weather')">🌧️ Weather</button>
+      <button class="tag-btn" onclick="voiceTag('navigation')">🧭 Navigation</button>
+      <button class="tag-btn" onclick="voiceTag('observation')">👁️ Observation</button>
+      <button class="tag-btn" onclick="flagImportant()">⚠️ Flag</button>
+    </div>
+
+    <div class="transcript-live" id="transcript-live" style="display:none">
+      <span class="transcript-interim" id="transcript-interim">Listening...</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Sessions View ─────────────────────── -->
+<div class="view" id="view-sessions">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <h2 style="font-size:1.1rem">📋 Sessions</h2>
+    <button class="tag-btn" onclick="exportAllSessions()">📤 Export All</button>
+  </div>
+  <div class="session-list" id="session-list">
+    <div class="empty-state">
+      <div class="icon">🎙️</div>
+      <div>No sessions yet. Press record to start.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Search View ───────────────────────── -->
+<div class="view" id="view-search">
+  <h2 style="font-size:1.1rem;margin-bottom:16px">🔍 Search Sessions</h2>
+  <input class="search-bar" id="search-input" placeholder="Search transcripts..." oninput="searchSessions(this.value)">
+  <div class="search-results" id="search-results"></div>
+</div>
+
+<!-- ── Settings View ─────────────────────── -->
+<div class="view" id="view-settings">
+  <h2 style="font-size:1.1rem;margin-bottom:16px">⚙️ Settings</h2>
+
+  <div class="settings-group">
+    <h3>📝 Annotation</h3>
+    <div class="setting-row">
+      <span>Annotation interval</span>
+      <input type="number" id="setting-interval" value="60" min="10" max="300" onchange="saveSetting('interval', this.value)">
+    </div>
+    <div class="setting-row">
+      <span>Include GPS</span>
+      <div class="toggle on" id="toggle-gps" onclick="toggleSetting('gps', this)"></div>
+    </div>
+    <div class="setting-row">
+      <span>Include speed/heading</span>
+      <div class="toggle on" id="toggle-speed" onclick="toggleSetting('speed', this)"></div>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <h3>☁️ Cloud Sync</h3>
+    <div class="setting-row">
+      <span>Cloudflare sync</span>
+      <div class="toggle on" id="toggle-sync" onclick="toggleSetting('sync', this)"></div>
+    </div>
+    <div class="setting-row">
+      <span>Status</span>
+      <span id="sync-info" style="color:var(--text-dim);font-size:0.75rem">Not configured</span>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <h3>🎙️ Transcription</h3>
+    <div class="setting-row">
+      <span>Engine</span>
+      <select id="setting-engine" onchange="saveSetting('engine', this.value)">
+        <option value="webspeech">Web Speech (free)</option>
+        <option value="whisper">Whisper (cloud)</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <span>Language</span>
+      <select id="setting-lang" onchange="saveSetting('lang', this.value)">
+        <option value="en-US">English (US)</option>
+        <option value="en-GB">English (UK)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <h3>📦 Data</h3>
+    <div class="setting-row">
+      <span>Local storage used</span>
+      <span id="storage-info" style="color:var(--text-dim);font-size:0.75rem">—</span>
+    </div>
+    <div class="setting-row">
+      <span>Export all as Markdown</span>
+      <button class="tag-btn" onclick="exportAllSessions()">Export</button>
+    </div>
+    <div class="setting-row">
+      <span>Clear all local data</span>
+      <button class="tag-btn" style="border-color:var(--recording);color:var(--recording)" onclick="clearAllData()">Clear</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Bottom Nav ────────────────────────── -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="showView('record', this)">
+    <span class="icon">🎙️</span> Record
+  </button>
+  <button class="nav-btn" onclick="showView('sessions', this)">
+    <span class="icon">📋</span> Sessions
+  </button>
+  <button class="nav-btn" onclick="showView('search', this)">
+    <span class="icon">🔍</span> Search
+  </button>
+  <button class="nav-btn" onclick="showView('settings', this)">
+    <span class="icon">⚙️</span> Settings
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// ActiveLog.Ai — Phone-based transcription with geo-annotation
+// ═══════════════════════════════════════════════════════════
+
+// ── State ────────────────────────────────────────────────
+let isRecording = false;
+let session = null;
+let recognition = null;
+let watchId = null;
+let annotationInterval = null;
+let timerInterval = null;
+let lastPosition = null;
+let currentTags = [];
+let audioContext = null;
+let analyser = null;
+let audioMeterInterval = null;
+
+const SETTINGS_KEY = 'activelog_settings';
+const SESSIONS_KEY = 'activelog_sessions';
+
+let settings = loadSettings();
+
+// ── Settings ─────────────────────────────────────────────
+function loadSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {
+      interval: 60,
+      gps: true,
+      speed: true,
+      sync: true,
+      engine: 'webspeech',
+      lang: 'en-US',
+    };
+  } catch(e) {
+    return { interval: 60, gps: true, speed: true, sync: true, engine: 'webspeech', lang: 'en-US' };
+  }
+}
+
+function saveSetting(key, value) {
+  settings[key] = value;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function toggleSetting(key, el) {
+  settings[key] = !settings[key];
+  el.classList.toggle('on');
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+// ── Sessions Storage (IndexedDB-like via localStorage) ──
+function loadSessions() {
+  try {
+    return JSON.parse(localStorage.getItem(SESSIONS_KEY)) || [];
+  } catch(e) { return []; }
+}
+
+function saveSessions(sessions) {
+  try {
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+  } catch(e) {
+    showToast('Storage full — export and clear old sessions');
+  }
+}
+
+// ── Recording ────────────────────────────────────────────
+function toggleRecording() {
+  if (isRecording) stopRecording();
+  else startRecording();
+}
+
+function startRecording() {
+  const now = new Date();
+  session = {
+    id: `session-${now.getTime()}`,
+    startedAt: now.toISOString(),
+    endedAt: null,
+    annotations: [],
+    transcript: '',
+    tags: [],
+    wordCount: 0,
+  };
+
+  // Start speech recognition
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showToast('Speech recognition not supported. Use Chrome or Safari.');
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = settings.lang;
+
+  recognition.onresult = (event) => {
+    let interim = '';
+    let final = '';
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        final += transcript;
+      } else {
+        interim += transcript;
+      }
+    }
+
+    if (final) {
+      // Check for voice commands
+      const lower = final.toLowerCase().trim();
+      handleVoiceCommands(lower, final);
+
+      session.transcript += final + ' ';
+      session.wordCount += final.split(/\s+/).length;
+    }
+
+    // Update live display
+    const liveEl = document.getElementById('transcript-interim');
+    liveEl.innerHTML = (session.transcript.split('\n').pop() || '') +
+      '<span style="color:var(--accent)">' + interim + '</span>';
+    liveEl.parentElement.scrollTop = liveEl.parentElement.scrollHeight;
+  };
+
+  recognition.onerror = (event) => {
+    if (event.error === 'no-speech') return; // Normal
+    if (event.error === 'not-allowed') {
+      showToast('Microphone permission denied');
+      stopRecording();
+      return;
+    }
+    console.warn('Speech error:', event.error);
+  };
+
+  recognition.onend = () => {
+    // Auto-restart if still recording (some browsers stop after silence)
+    if (isRecording) {
+      try { recognition.start(); } catch(e) {}
+    }
+  };
+
+  recognition.start();
+
+  // Start GPS
+  if (settings.gps && navigator.geolocation) {
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        lastPosition = {
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          speed: pos.coords.speed,
+          heading: pos.coords.heading,
+          accuracy: pos.coords.accuracy,
+        };
+        updateSessionMeta();
+      },
+      (err) => { console.warn('GPS error:', err.message); },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    );
+  }
+
+  // Start annotation interval
+  annotationInterval = setInterval(() => {
+    injectAnnotation();
+  }, settings.interval * 1000);
+
+  // Start timer
+  timerInterval = setInterval(() => {
+    updateTimer();
+  }, 1000);
+
+  // Start audio meter
+  startAudioMeter();
+
+  // Update UI
+  isRecording = true;
+  document.getElementById('record-btn').classList.add('recording');
+  document.getElementById('record-label').textContent = 'STOP';
+  document.querySelector('.record-button .icon').textContent = '⏹';
+  document.getElementById('pre-session').style.display = 'none';
+  document.getElementById('active-session').style.display = 'block';
+  document.getElementById('transcript-live').style.display = 'block';
+  document.getElementById('audio-meter-wrap').style.display = 'block';
+  document.getElementById('voice-tags').style.display = 'flex';
+
+  // Inject first annotation immediately
+  injectAnnotation();
+
+  showToast('Recording started');
+}
+
+function stopRecording() {
+  isRecording = false;
+
+  if (recognition) {
+    recognition.stop();
+    recognition = null;
+  }
+
+  if (watchId) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  }
+
+  if (annotationInterval) {
+    clearInterval(annotationInterval);
+    annotationInterval = null;
+  }
+
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  if (audioMeterInterval) {
+    clearInterval(audioMeterInterval);
+    audioMeterInterval = null;
+  }
+
+  // Finalize session
+  session.endedAt = new Date().toISOString();
+
+  // Generate markdown
+  const markdown = generateMarkdown(session);
+  session.rawMarkdown = markdown;
+  session.tags = [...new Set([...session.tags, ...currentTags])];
+
+  // Save locally
+  const sessions = loadSessions();
+  sessions.push(session);
+  saveSessions(sessions);
+
+  // Download markdown file
+  downloadSession(session);
+
+  // Sync to D1 if configured
+  if (settings.sync && navigator.onLine) {
+    syncSession(session);
+  }
+
+  // Reset UI
+  document.getElementById('record-btn').classList.remove('recording');
+  document.getElementById('record-label').textContent = 'START';
+  document.querySelector('.record-button .icon').textContent = '🎤';
+  document.getElementById('pre-session').style.display = 'block';
+  document.getElementById('active-session').style.display = 'none';
+  document.getElementById('transcript-live').style.display = 'none';
+  document.getElementById('audio-meter-wrap').style.display = 'none';
+  document.getElementById('voice-tags').style.display = 'none';
+  currentTags = [];
+
+  showToast(`Session saved (${session.wordCount} words, ${session.annotations.length} annotations)`);
+
+  session = null;
+}
+
+// ── Annotation Injection ─────────────────────────────────
+function injectAnnotation() {
+  const now = new Date();
+  const ts = now.toISOString();
+  const tsDisplay = now.toUTCString().split(' ')[4]; // HH:MM:SS
+
+  let ann = {
+    timestamp: ts,
+    latitude: lastPosition?.lat || null,
+    longitude: lastPosition?.lon || null,
+    speed: lastPosition?.speed || null,
+    heading: lastPosition?.heading || null,
+    accuracy: lastPosition?.accuracy || null,
+    tags: [...currentTags],
+  };
+
+  session.annotations.push(ann);
+
+  // Format annotation for transcript
+  let locStr = '';
+  if (ann.latitude && ann.longitude) {
+    locStr = `📍 ${ann.latitude.toFixed(4)}°, ${ann.longitude.toFixed(4)}°`;
+    if (ann.speed && settings.speed) {
+      locStr += ` | ${ann.speed.toFixed(1)} m/s`;
+    }
+  } else {
+    locStr = '📍 No GPS fix';
+  }
+
+  const annotationLine = `\n\n---\n**${locStr} | 🕐 ${tsDisplay} UTC**\n---\n\n`;
+
+  // Add to transcript
+  session.transcript += annotationLine;
+
+  // Update live display
+  const live = document.getElementById('transcript-live');
+  const annDiv = document.createElement('div');
+  annDiv.className = 'transcript-annotation';
+  annDiv.textContent = `${locStr} | ${tsDisplay}`;
+  live.appendChild(annDiv);
+  live.scrollTop = live.scrollHeight;
+
+  // Clear voice tags after each annotation
+  currentTags = [];
+  document.querySelectorAll('.voice-tags .tag-btn').forEach(b => b.classList.remove('tagged'));
+
+  updateSessionMeta();
+}
+
+// ── Voice Commands ───────────────────────────────────────
+function handleVoiceCommands(lower, original) {
+  const commands = [
+    { pattern: /mark catch|tag catch/, tag: 'catch' },
+    { pattern: /mark maintenance|tag maintenance/, tag: 'maintenance' },
+    { pattern: /mark weather|tag weather/, tag: 'weather' },
+    { pattern: /mark navigation|tag navigation/, tag: 'navigation' },
+    { pattern: /flag this|important|mark important/, tag: 'important' },
+    { pattern: /end session|stop recording/, action: () => stopRecording() },
+  ];
+
+  commands.forEach(cmd => {
+    if (cmd.pattern.test(lower)) {
+      if (cmd.tag) {
+        currentTags.push(cmd.tag);
+        session.tags.push(cmd.tag);
+        // Highlight the tag button
+        document.querySelectorAll('.voice-tags .tag-btn').forEach(btn => {
+          if (btn.textContent.toLowerCase().includes(cmd.tag)) {
+            btn.classList.add('tagged');
+          }
+        });
+        showToast(`Tagged: ${cmd.tag}`);
+      }
+      if (cmd.action) cmd.action();
+    }
+  });
+}
+
+function voiceTag(tag) {
+  currentTags.push(tag);
+  session.tags.push(tag);
+  event.target.classList.add('tagged');
+  showToast(`Tagged: ${tag}`);
+}
+
+function flagImportant() {
+  currentTags.push('important');
+  session.tags.push('important');
+  showToast('⚠ Flagged important');
+}
+
+// ── Audio Meter ──────────────────────────────────────────
+async function startAudioMeter() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaStreamSource(stream);
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    source.connect(analyser);
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    audioMeterInterval = setInterval(() => {
+      analyser.getByteFrequencyData(dataArray);
+      const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+      const pct = Math.min(100, (avg / 128) * 100);
+      document.getElementById('audio-meter').style.width = pct + '%';
+    }, 100);
+  } catch(e) {
+    console.warn('Audio meter failed:', e);
+  }
+}
+
+// ── Timer & Meta ─────────────────────────────────────────
+function updateTimer() {
+  if (!session) return;
+  const elapsed = Date.now() - new Date(session.startedAt).getTime();
+  const h = Math.floor(elapsed / 3600000);
+  const m = Math.floor((elapsed % 3600000) / 60000);
+  const s = Math.floor((elapsed % 60000) / 1000);
+  document.getElementById('session-timer').textContent =
+    `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function updateSessionMeta() {
+  const meta = document.getElementById('session-meta');
+  const annCount = session?.annotations.length || 0;
+  let gpsStr = 'No GPS';
+  if (lastPosition) {
+    gpsStr = `${lastPosition.lat.toFixed(4)}°, ${lastPosition.lon.toFixed(4)}°`;
+    if (lastPosition.accuracy) gpsStr += ` (±${Math.round(lastPosition.accuracy)}m)`;
+  }
+  meta.textContent = `${annCount} annotations | ${gpsStr} | ${session?.wordCount || 0} words`;
+}
+
+// ── Markdown Generation ──────────────────────────────────
+function generateMarkdown(s) {
+  const start = new Date(s.startedAt);
+  const end = s.endedAt ? new Date(s.endedAt) : new Date();
+  const dur = Math.round((end - start) / 1000);
+  const durStr = `${Math.floor(dur/3600)}h ${Math.floor((dur%3600)/60)}m ${dur%60}s`;
+
+  let locStart = '';
+  let locEnd = '';
+  if (s.annotations.length > 0) {
+    const first = s.annotations[0];
+    const last = s.annotations[s.annotations.length - 1];
+    if (first.latitude) locStart = `${first.latitude.toFixed(4)}°, ${first.longitude.toFixed(4)}°`;
+    if (last.latitude) locEnd = `${last.latitude.toFixed(4)}°, ${last.longitude.toFixed(4)}°`;
+  }
+
+  let md = `# ActiveLog Session — ${start.toISOString().split('T')[0]}\n\n`;
+  md += `**Started:** ${s.startedAt}\n`;
+  md += `**Ended:** ${s.endedAt || 'N/A'}\n`;
+  md += `**Duration:** ${durStr}\n`;
+  if (locStart) md += `**Location Start:** ${locStart}\n`;
+  if (locEnd) md += `**Location End:** ${locEnd}\n`;
+  md += `**Annotations:** ${s.annotations.length}\n`;
+  md += `**Words:** ${s.wordCount}\n`;
+  if (s.tags.length > 0) md += `**Tags:** ${[...new Set(s.tags)].join(', ')}\n`;
+  md += `\n---\n\n`;
+  md += s.transcript;
+  md += `\n\n---\n\n*Session ended at ${end.toISOString()}. ${s.annotations.length} annotations. ${s.wordCount} words.*\n`;
+
+  return md;
+}
+
+// ── Download ─────────────────────────────────────────────
+function downloadSession(s) {
+  const blob = new Blob([s.rawMarkdown || generateMarkdown(s)], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const date = s.startedAt.split('T')[0];
+  a.download = `activelog-${date}-${s.id.split('-')[1]}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── D1 Sync ──────────────────────────────────────────────
+async function syncSession(s) {
+  const syncDot = document.getElementById('sync-dot');
+  const syncLabel = document.getElementById('sync-label');
+  syncDot.classList.add('syncing');
+  syncLabel.textContent = 'Syncing...';
+
+  try {
+    // Determine API URL (same origin if served from Worker, or configurable)
+    const apiUrl = window.location.origin + '/api/sessions';
+
+    const resp = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: s.id,
+        started_at: s.startedAt,
+        ended_at: s.endedAt,
+        annotation_count: s.annotations.length,
+        word_count: s.wordCount,
+        tags: JSON.stringify([...new Set(s.tags)]),
+        raw_markdown: s.rawMarkdown || generateMarkdown(s),
+        annotations: s.annotations,
+      }),
+    });
+
+    if (resp.ok) {
+      syncDot.classList.remove('syncing', 'offline');
+      syncLabel.textContent = 'Synced';
+      s.syncedAt = new Date().toISOString();
+      // Update local record
+      const sessions = loadSessions();
+      const idx = sessions.findIndex(x => x.id === s.id);
+      if (idx >= 0) { sessions[idx] = s; saveSessions(sessions); }
+    } else {
+      throw new Error(`HTTP ${resp.status}`);
+    }
+  } catch(e) {
+    syncDot.classList.remove('syncing');
+    syncDot.classList.add('offline');
+    syncLabel.textContent = 'Offline (will retry)';
+  }
+}
+
+// ── Session List ─────────────────────────────────────────
+function renderSessions() {
+  const list = document.getElementById('session-list');
+  const sessions = loadSessions();
+
+  if (sessions.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">🎙️</div><div>No sessions yet. Press record to start.</div></div>`;
+    return;
+  }
+
+  list.innerHTML = sessions.slice().reverse().map(s => {
+    const date = new Date(s.startedAt).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+    });
+    const tags = [...new Set(s.tags || [])];
+    const preview = (s.transcript || '').substring(0, 120).replace(/---/g, '').trim();
+
+    return `<div class="session-card" onclick="viewSession('${s.id}')">
+      <div class="session-card-header">
+        <div class="session-card-title">Session ${s.startedAt.split('T')[0]}</div>
+        <div class="session-card-date">${date}</div>
+      </div>
+      <div class="session-card-meta">
+        <span>🕐 ${s.annotations?.length || 0} annotations</span>
+        <span>📝 ${s.wordCount || 0} words</span>
+        ${s.syncedAt ? '<span style="color:var(--ok)">☁️ Synced</span>' : '<span>⏳ Local only</span>'}
+      </div>
+      ${tags.length > 0 ? `<div class="session-tags">${tags.map(t => `<span class="transcript-tag tag-${t}">${t}</span>`).join('')}</div>` : ''}
+      ${preview ? `<div class="session-card-preview">${preview}...</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function viewSession(id) {
+  const sessions = loadSessions();
+  const s = sessions.find(x => x.id === id);
+  if (!s) return;
+
+  // Switch to session detail view (render in sessions tab)
+  const list = document.getElementById('session-list');
+  const markdown = s.rawMarkdown || generateMarkdown(s);
+
+  list.innerHTML = `
+    <div class="session-detail">
+      <div class="session-detail-header">
+        <button class="tag-btn" onclick="renderSessions()" style="margin-bottom:12px">← Back</button>
+        <div class="session-detail-title">Session ${s.startedAt.split('T')[0]}</div>
+        <div class="session-detail-meta">
+          <span>🕐 ${s.annotations?.length || 0} annotations</span>
+          <span>📝 ${s.wordCount || 0} words</span>
+          <span>📅 ${new Date(s.startedAt).toLocaleString()}</span>
+          ${s.syncedAt ? `<span style="color:var(--ok)">☁️ Synced</span>` : ''}
+        </div>
+      </div>
+      <div class="session-transcript">${markdownToHtml(markdown)}</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="tag-btn" onclick="downloadSession(loadSessions().find(x=>x.id==='${s.id}'))">📥 Download</button>
+        <button class="tag-btn" onclick="syncSession(loadSessions().find(x=>x.id==='${s.id}'))">☁️ Sync Now</button>
+        <button class="tag-btn" style="border-color:var(--recording);color:var(--recording)" onclick="deleteSession('${s.id}')">🗑 Delete</button>
+      </div>
+    </div>`;
+}
+
+function deleteSession(id) {
+  if (!confirm('Delete this session?')) return;
+  const sessions = loadSessions().filter(s => s.id !== id);
+  saveSessions(sessions);
+  renderSessions();
+  showToast('Session deleted');
+}
+
+function markdownToHtml(md) {
+  // Simple markdown to HTML
+  let html = md
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/---/g, '<hr>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(.+)$/m, '<p>$1');
+  return `<p>${html}</p>`;
+}
+
+// ── Search ───────────────────────────────────────────────
+function searchSessions(query) {
+  const results = document.getElementById('search-results');
+  if (!query || query.length < 2) {
+    results.innerHTML = '';
+    return;
+  }
+
+  const sessions = loadSessions();
+  const lower = query.toLowerCase();
+  const matches = sessions.filter(s =>
+    (s.transcript || '').toLowerCase().includes(lower) ||
+    (s.tags || []).some(t => t.includes(lower))
+  );
+
+  if (matches.length === 0) {
+    results.innerHTML = '<div class="empty-state">No matches found.</div>';
+    return;
+  }
+
+  results.innerHTML = matches.map(s => {
+    const text = s.transcript || '';
+    const idx = text.toLowerCase().indexOf(lower);
+    const start = Math.max(0, idx - 50);
+    const end = Math.min(text.length, idx + 100);
+    const snippet = text.substring(start, end).replace(new RegExp(query, 'gi'), `<mark style="background:var(--accent-glow);color:var(--accent)">$&</mark>`);
+
+    return `<div class="session-card" onclick="viewSession('${s.id}')">
+      <div class="session-card-header">
+        <div class="session-card-title">Session ${s.startedAt.split('T')[0]}</div>
+        <div class="session-card-date">${new Date(s.startedAt).toLocaleDateString()}</div>
+      </div>
+      <div class="session-card-preview">...${snippet}...</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Export ───────────────────────────────────────────────
+function exportAllSessions() {
+  const sessions = loadSessions();
+  if (sessions.length === 0) {
+    showToast('No sessions to export');
+    return;
+  }
+
+  sessions.forEach(s => downloadSession(s));
+  showToast(`Exported ${sessions.length} sessions`);
+}
+
+function clearAllData() {
+  if (!confirm('Delete ALL local sessions? This cannot be undone.')) return;
+  localStorage.removeItem(SESSIONS_KEY);
+  renderSessions();
+  showToast('All local data cleared');
+}
+
+// ── Navigation ───────────────────────────────────────────
+function showView(name, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(`view-${name}`).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  if (name === 'sessions') renderSessions();
+  if (name === 'settings') updateStorageInfo();
+}
+
+// ── Utilities ────────────────────────────────────────────
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+function updateStorageInfo() {
+  const sessions = loadSessions();
+  const size = new Blob([JSON.stringify(sessions)]).size;
+  const kb = (size / 1024).toFixed(1);
+  document.getElementById('storage-info').textContent = `${kb} KB (${sessions.length} sessions)`;
+  document.getElementById('sync-info').textContent = navigator.onLine ? 'Ready' : 'Offline';
+}
+
+// ── Online/Offline ───────────────────────────────────────
+window.addEventListener('online', () => {
+  document.getElementById('sync-dot').classList.remove('offline', 'syncing');
+  document.getElementById('sync-label').textContent = 'Online';
+});
+
+window.addEventListener('offline', () => {
+  document.getElementById('sync-dot').classList.add('offline');
+  document.getElementById('sync-dot').classList.remove('syncing');
+  document.getElementById('sync-label').textContent = 'Offline';
+});
+
+if (!navigator.onLine) {
+  document.getElementById('sync-dot').classList.add('offline');
+  document.getElementById('sync-label').textContent = 'Offline';
+}
+
+// ── Init ─────────────────────────────────────────────────
+updateStorageInfo();
+
+// Request permissions on first interaction
+document.body.addEventListener('click', function init() {
+  // Warm up speech recognition permissions prompt
+  document.body.removeEventListener('click', init);
+}, { once: true });
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "activelog-ai",
+  "version": "0.1.0",
+  "description": "Phone-as-transcription-device with geo-annotation for vessel operations",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy:worker": "wrangler deploy",
+    "deploy:pages": "wrangler pages deploy src --project-name=activelog-ai",
+    "deploy": "npm run deploy:worker && npm run deploy:pages",
+    "db:create": "wrangler d1 create activelog",
+    "db:migrate": "wrangler d1 execute activelog --file=schema.sql",
+    "vectorize:create": "wrangler vectorize create activelog-embeddings --dimensions=384",
+    "r2:create": "wrangler r2 bucket create activelog-audio"
+  },
+  "dependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "license": "MIT"
+}
