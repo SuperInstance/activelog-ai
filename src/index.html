@@ -458,6 +458,7 @@
       <button class="tag-btn" onclick="voiceTag('weather')">🌧️ Weather</button>
       <button class="tag-btn" onclick="voiceTag('navigation')">🧭 Navigation</button>
       <button class="tag-btn" onclick="voiceTag('observation')">👁️ Observation</button>
+      <button class="tag-btn" onclick="cameraDeploy()">📷 Camera Down</button>
       <button class="tag-btn" onclick="flagImportant()">⚠️ Flag</button>
     </div>
 
@@ -918,6 +919,24 @@ function flagImportant() {
   currentTags.push('important');
   session.tags.push('important');
   showToast('⚠ Flagged important');
+}
+
+// ── Camera Deployment (structured tag for Hermes alignment) ──
+function cameraDeploy() {
+  const depth = prompt('Camera depth (fathoms):', '40');
+  if (!depth) return;
+  const now = new Date();
+  const cameraTag = {
+    type: 'camera_deploy',
+    timestamp: now.toISOString(),
+    depth_fm: parseFloat(depth) || 0,
+    status: 'started'
+  };
+  currentTags.push('camera');
+  session.tags.push('camera');
+  // Add structured annotation for Hermes to parse
+  session.transcript += `\n[camera:deploy depth=${depth}fm start=${now.toISOString()}]\n`;
+  showToast(`📷 Camera deployed at ${depth} fathoms — logged for alignment`);
 }
 
 // ── Audio Meter ──────────────────────────────────────────
