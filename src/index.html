@@ -510,6 +510,25 @@
   </div>
 
   <div class="settings-group">
+    <h3>🚢 Vessel Connection</h3>
+    <div class="setting-row">
+      <span>Data source</span>
+      <select id="setting-vessel-source" onchange="saveSetting('vesselSource', this.value)">
+        <option value="phone">Phone GPS</option>
+        <option value="vessel">Vessel NMEA (boat WiFi)</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <span>Vessel endpoint</span>
+      <input type="text" id="setting-vessel-url" value="http://127.0.0.1:8654/vessel" placeholder="http://nav:8654/vessel" onchange="saveSetting('vesselUrl', this.value)">
+    </div>
+    <div class="setting-row">
+      <span>Show vocabulary</span>
+      <div class="toggle" id="toggle-vocab" onclick="toggleSetting('showVocab', this)"></div>
+    </div>
+  </div>
+
+  <div class="settings-group">
     <h3>☁️ Cloud Sync</h3>
     <div class="setting-row">
       <span>Cloudflare sync</span>
@@ -607,6 +626,9 @@ function loadSettings() {
       sync: true,
       engine: 'webspeech',
       lang: 'en-US',
+      vesselSource: 'phone',
+      vesselUrl: 'http://127.0.0.1:8654/vessel',
+      showVocab: false,
     };
   } catch(e) {
     return { interval: 60, gps: true, speed: true, sync: true, engine: 'webspeech', lang: 'en-US' };
@@ -643,6 +665,67 @@ function saveSessions(sessions) {
 function toggleRecording() {
   if (isRecording) stopRecording();
   else startRecording();
+}
+
+// ── Vessel Data Polling ──────────────────────────────────
+let vesselPollInterval = null;
+
+async function pollVesselData() {
+  if (settings.vesselSource !== 'vessel') return;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    const resp = await fetch(settings.vesselUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!resp.ok) return;
+    const data = await resp.json();
+    lastPosition = {
+      lat: data.lat || data.latitude || data.lat_dd,
+      lon: data.lon || data.longitude || data.lon_dd,
+      speed: data.sog || data.speed_kts || data.sog_kts,
+      heading: data.cog || data.course_deg || data.cog_deg,
+      depth: data.depth_fm || data.depth,
+      waterTemp: data.water_temp_c || data.water_temp,
+    };
+    updateSessionMeta();
+    // Update vocabulary display if enabled
+    if (settings.showVocab && data.vocabulary) {
+      showVocabularyOverlay(data.vocabulary);
+    }
+  } catch(e) {
+    // Silently fail — fallback to phone GPS
+  }
+}
+
+function showVocabularyOverlay(vocab) {
+  let el = document.getElementById('vocab-overlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'vocab-overlay';
+    el.style.cssText = 'position:fixed;top:70px;right:16px;background:var(--panel-2);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;font-size:0.8rem;z-index:40;max-width:250px';
+    document.body.appendChild(el);
+  }
+  const species = vocab.species || vocab[0]?.species || 'unknown';
+  const conf = vocab.confidence || vocab[0]?.confidence || 0;
+  const depth = vocab.depth_fm || vocab[0]?.depth_fm || '?';
+  const blobs = vocab.blob_count || vocab[0]?.blob_count || '?';
+  el.innerHTML = `<div style="color:var(--accent);font-weight:600">🐟 Vocabulary</div>` +
+    `<div>Species: <strong>${species}</strong> (P=${conf})</div>` +
+    `<div>Depth: ${depth}fm | Blobs: ${blobs}</div>` +
+    `<div style="margin-top:4px;font-size:0.7rem;color:var(--text-dim)">Say "confirmed ${species}" or "wrong species"</div>`;
+}
+
+// Auto-detect vessel connection on load
+async function detectVessel() {
+  if (settings.vesselSource === 'vessel') return; // already set
+  try {
+    const resp = await fetch('http://127.0.0.1:8654/vessel', { signal: AbortSignal.timeout(2000) });
+    if (resp.ok) {
+      settings.vesselSource = 'vessel';
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      showToast('Vessel detected — using boat NMEA');
+    }
+  } catch(e) { /* not on boat WiFi */ }
 }
 
 function startRecording() {
@@ -718,21 +801,31 @@ function startRecording() {
   recognition.start();
 
   // Start GPS
-  if (settings.gps && navigator.geolocation) {
-    watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        lastPosition = {
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-          speed: pos.coords.speed,
-          heading: pos.coords.heading,
-          accuracy: pos.coords.accuracy,
-        };
-        updateSessionMeta();
-      },
-      (err) => { console.warn('GPS error:', err.message); },
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
-    );
+  if (settings.gps) {
+    if (settings.vesselSource === 'vessel') {
+      // Poll vessel HTTP endpoint
+      pollVesselData(); // immediate
+      vesselPollInterval = setInterval(pollVesselData, 5000); // every 5 seconds
+    }
+    // Also start phone GPS as fallback
+    if (navigator.geolocation) {
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          if (settings.vesselSource !== 'vessel') { // only use phone if not using vessel
+            lastPosition = {
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+              speed: pos.coords.speed,
+              heading: pos.coords.heading,
+              accuracy: pos.coords.accuracy,
+            };
+            updateSessionMeta();
+          }
+        },
+        (err) => { console.warn('GPS error:', err.message); },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+      );
+    }
   }
 
   // Start annotation interval
@@ -777,6 +870,15 @@ function stopRecording() {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
   }
+
+  if (vesselPollInterval) {
+    clearInterval(vesselPollInterval);
+    vesselPollInterval = null;
+  }
+
+  // Remove vocab overlay if present
+  const vocabEl = document.getElementById('vocab-overlay');
+  if (vocabEl) vocabEl.remove();
 
   if (annotationInterval) {
     clearInterval(annotationInterval);
@@ -852,11 +954,18 @@ function injectAnnotation() {
   let locStr = '';
   if (ann.latitude && ann.longitude) {
     locStr = `📍 ${ann.latitude.toFixed(4)}°, ${ann.longitude.toFixed(4)}°`;
-    if (ann.speed && settings.speed) {
-      locStr += ` | ${ann.speed.toFixed(1)} m/s`;
+    if (settings.speed && lastPosition?.speed) {
+      locStr += ` | SOG: ${lastPosition.speed.toFixed(1)}kn`;
     }
   } else {
     locStr = '📍 No GPS fix';
+  }
+  // Add vessel data from NMEA bridge if available
+  if (lastPosition?.depth) {
+    locStr += ` | Depth: ${lastPosition.depth.toFixed(1)}fm`;
+  }
+  if (lastPosition?.waterTemp) {
+    locStr += ` | Water: ${lastPosition.waterTemp.toFixed(1)}°C`;
   }
 
   const annotationLine = `\n\n---\n**${locStr} | 🕐 ${tsDisplay} UTC**\n---\n\n`;
@@ -888,10 +997,14 @@ function handleVoiceCommands(lower, original) {
     { pattern: /mark navigation|tag navigation/, tag: 'navigation' },
     { pattern: /flag this|important|mark important/, tag: 'important' },
     { pattern: /end session|stop recording/, action: () => stopRecording() },
+    // Vocabulary feedback commands
+    { pattern: /confirmed (\w+)/, action: (m) => vocabFeedback('confirmation', m[1]) },
+    { pattern: /wrong species|not (?:chum|sockeye|coho|king|pink)/, action: () => vocabFeedback('correction', null) },
   ];
 
   commands.forEach(cmd => {
-    if (cmd.pattern.test(lower)) {
+    const match = lower.match(cmd.pattern);
+    if (match) {
       if (cmd.tag) {
         currentTags.push(cmd.tag);
         session.tags.push(cmd.tag);
@@ -903,9 +1016,30 @@ function handleVoiceCommands(lower, original) {
         });
         showToast(`Tagged: ${cmd.tag}`);
       }
-      if (cmd.action) cmd.action();
+      if (cmd.action) cmd.action(match);
     }
   });
+}
+
+// ── Vocabulary Feedback ─────────────────────────────────
+function vocabFeedback(type, species) {
+  if (!session) return;
+  const feedback = {
+    type, // 'confirmation' or 'correction'
+    species: species || 'unknown',
+    timestamp: new Date().toISOString(),
+    transcript_context: session.transcript.slice(-200),
+  };
+  // Store in session for later sync
+  if (!session.vocabFeedback) session.vocabFeedback = [];
+  session.vocabFeedback.push(feedback);
+  // Add structured tag
+  session.transcript += `\n[vocab:${type} species=${feedback.species}]\n`;
+  if (type === 'confirmation') {
+    showToast(`✓ Confirmed ${species}`);
+  } else {
+    showToast(`⚠ Species correction logged`);
+  }
 }
 
 function voiceTag(tag) {
@@ -1260,6 +1394,7 @@ if (!navigator.onLine) {
 
 // ── Init ─────────────────────────────────────────────────
 updateStorageInfo();
+detectVessel(); // auto-detect boat connection on load
 
 // Request permissions on first interaction
 document.body.addEventListener('click', function init() {
