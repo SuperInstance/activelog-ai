@@ -1,0 +1,108 @@
+/* Real Journal — warm earthy tones, paper texture feel */
+
+:root {
+  --color-bg: #faf6f0;
+  --color-text: #3e2c1c;
+  --color-accent: #c47f17;
+  --color-card: #fff9f0;
+  --color-muted: #8b7355;
+  --color-border: #d4c5a9;
+  --color-highlight: #f5deb3;
+  --color-danger: #a0522d;
+  --color-success: #6b8e23;
+  --font-body: 'Georgia', 'Palatino Linotype', 'Book Antiqua', serif;
+  --font-heading: 'Palatino Linotype', 'Georgia', serif;
+  --font-mono: 'Courier New', 'Courier', monospace;
+  --radius: 4px;
+  --shadow: 0 1px 3px rgba(62, 44, 28, 0.08);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  line-height: 1.7;
+  background-image: repeating-linear-gradient(
+    transparent, transparent 31px, var(--color-border) 31px, var(--color-border) 32px
+  );
+  background-attachment: fixed;
+}
+
+h1, h2, h3 { font-family: var(--font-heading); color: var(--color-accent); }
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-bottom: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 1em;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.mood-1 { color: var(--color-danger); }
+.mood-2 { color: #b8860b; }
+.mood-3 { color: var(--color-muted); }
+.mood-4 { color: var(--color-success); }
+.mood-5 { color: #228b22; }
+
+.tag {
+  background: var(--color-highlight);
+  color: var(--color-text);
+  padding: 0.15em 0.6em;
+  border-radius: 12px;
+  font-size: 0.85em;
+  border: 1px solid var(--color-border);
+}
+
+.streak-bar {
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.streak-bar .fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+input, textarea {
+  font-family: var(--font-body);
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  border-radius: var(--radius);
+  padding: 0.5em;
+  color: var(--color-text);
+}
+
+input:focus, textarea:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #1a1510;
+    --color-text: #e8dcc8;
+    --color-accent: #d4952a;
+    --color-card: #252018;
+    --color-muted: #a09070;
+    --color-border: #3d3428;
+    --color-highlight: #3d3020;
+    --color-danger: #d4734a;
+  }
+  body {
+    background-image: repeating-linear-gradient(
+      transparent, transparent 31px, var(--color-border) 31px, var(--color-border) 32px
+    );
+  }
+}

@@ -1,0 +1,4 @@
+# Merge strategy for studylog.ai fork
+app/ merge=theirs
+config/custom-study/ merge=ours
+docs/ merge=theirs

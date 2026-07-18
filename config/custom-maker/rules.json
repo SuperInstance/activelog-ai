@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Write Code",
+    "pattern": "^/code|^(write|implement|create|build|code|function|class|component|hook|module|endpoint|api|script)",
+    "template": "maker_code",
+    "action": "escalation",
+    "confidence": 0.90,
+    "description": "Generate implementation code with full context"
+  },
+  {
+    "name": "Debug Issue",
+    "pattern": "^/debug|^(debug|fix|error|bug|broken|crash|not working|failing|issue|exception|traceback|stack trace|segfault)",
+    "template": "maker_debug",
+    "action": "escalation",
+    "confidence": 0.91,
+    "description": "Systematic debugging with root cause analysis"
+  },
+  {
+    "name": "Code Review",
+    "pattern": "^/review|^(review|refactor|improve|clean up|optimize|code review|pr review|critique)",
+    "template": "maker_code",
+    "action": "compare",
+    "confidence": 0.89,
+    "description": "Code review with comparison of approaches"
+  },
+  {
+    "name": "Architecture Design",
+    "pattern": "^/architect|^(architect|architecture|design|system design|infrastructure|microservice|monolith|scale|tech stack)",
+    "template": "maker_architecture",
+    "action": "escalation",
+    "confidence": 0.88,
+    "description": "System architecture and design decisions"
+  },
+  {
+    "name": "Prototype",
+    "pattern": "^/prototype|^(prototype|poc|proof of concept|mvp|mockup|wireframe|sketch|quick|spike)",
+    "template": "maker_prototype",
+    "action": "cheap",
+    "confidence": 0.86,
+    "description": "Rapid prototype generation"
+  },
+  {
+    "name": "Deploy",
+    "pattern": "^/deploy|^(deploy|deploying|deployment|ci|cd|pipeline|dockerfile|kubernetes|terraform|serverless|hosting)",
+    "template": "maker_deploy",
+    "action": "escalation",
+    "confidence": 0.90,
+    "description": "Deployment configuration and CI/CD setup"
+  },
+  {
+    "name": "Write Tests",
+    "pattern": "^/test|^(test|testing|unit test|integration test|e2e|jest|vitest|pytest|spec|coverage|tdd|bdd)",
+    "template": "maker_code",
+    "action": "cheap",
+    "confidence": 0.87,
+    "description": "Test generation with edge case coverage"
+  },
+  {
+    "name": "Documentation",
+    "pattern": "^/docs|^(docs|documentation|readme|api docs|jsdoc|docstring|comment|guides|wiki)",
+    "template": "maker_prototype",
+    "action": "cheap",
+    "confidence": 0.85,
+    "description": "Documentation, README, and API docs"
+  }
+]

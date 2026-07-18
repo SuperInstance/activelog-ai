@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Journal Entry",
+    "pattern": "^/journal|^(journal|write|entry|log|today|day|what happened|update|check in)",
+    "template": "real_journal",
+    "action": "cheap",
+    "confidence": 0.90,
+    "description": "Daily journal entry prompts and reflection"
+  },
+  {
+    "name": "Deep Reflection",
+    "pattern": "^/reflect|^(reflect|think about|ponder|consider|meditate|contemplate|process|work through)",
+    "template": "real_reflection",
+    "action": "escalation",
+    "confidence": 0.88,
+    "description": "Deep reflection on experiences and emotions"
+  },
+  {
+    "name": "Gratitude Practice",
+    "pattern": "^/gratitude|^(gratitude|thankful|appreciate|blessed|good things|positive)",
+    "template": "real_journal",
+    "action": "cheap",
+    "confidence": 0.85,
+    "description": "Gratitude journaling and appreciation practice"
+  },
+  {
+    "name": "Goal Setting",
+    "pattern": "^/goal|^(goal|objective|aim|target|aspiration|dream|vision|plan|want to achieve)",
+    "template": "real_goal",
+    "action": "escalation",
+    "confidence": 0.87,
+    "description": "Goal clarification and planning"
+  },
+  {
+    "name": "Habit Tracking",
+    "pattern": "^/habit|^(habit|routine|daily|practice|consistency|discipline|track|streak)",
+    "template": "real_habit",
+    "action": "cheap",
+    "confidence": 0.86,
+    "description": "Habit formation and tracking"
+  },
+  {
+    "name": "Mood Tracking",
+    "pattern": "^/mood|^(mood|feel|emotion|emotional|how.*feel|state|energy|vibe)",
+    "template": "real_journal",
+    "action": "cheap",
+    "confidence": 0.84,
+    "description": "Mood tracking and emotional awareness"
+  },
+  {
+    "name": "Dream Journal",
+    "pattern": "^/dream|^(dream|nightmare|sleep|subconscious|symbol|interpret)",
+    "template": "real_journal",
+    "action": "cheap",
+    "confidence": 0.83,
+    "description": "Dream recording and reflection"
+  },
+  {
+    "name": "Insight Capture",
+    "pattern": "^/insight|^(insight|realization|epiphany|aha moment|breakthrough|clarity|understanding)",
+    "template": "real_insight",
+    "action": "escalation",
+    "confidence": 0.89,
+    "description": "Capturing and integrating insights"
+  }
+]

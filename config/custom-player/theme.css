@@ -1,0 +1,226 @@
+/* ============================================================
+   PlayerLog.ai Theme — Neon Gaming Aesthetic
+   Override file for log-origin base styles.
+   Applied when body has class "player-theme".
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;500;600;700&display=swap');
+
+body.player-theme {
+  --color-bg-primary: #0a0a12;
+  --color-bg-secondary: #151522;
+  --color-bg-tertiary: #1e1e2e;
+  --color-bg-card: #1a1a28;
+  --color-bg-input: #0a0a12;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b0b0ff;
+  --color-text-muted: #8888cc;
+  --color-accent-purple: #9d4edd;
+  --color-accent-cyan: #00e5ff;
+  --color-accent-green: #00ff88;
+  --color-accent-pink: #ff2a6d;
+  --color-accent-yellow: #ffd166;
+  --color-success: #00ff88;
+  --color-warning: #ffd166;
+  --color-danger: #ff2a6d;
+  --color-info: #00e5ff;
+  --font-heading: 'Orbitron', 'Arial Black', sans-serif;
+  --font-body: 'Exo 2', 'Segoe UI', sans-serif;
+}
+
+body.player-theme {
+  background: radial-gradient(ellipse at top, #0a0a12 0%, #000000 100%);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+body.player-theme h1,
+body.player-theme h2,
+body.player-theme h3,
+body.player-theme h4 {
+  font-family: var(--font-heading);
+  color: var(--color-accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px var(--color-accent-cyan);
+}
+
+body.player-theme h1 { font-size: 1.8rem; }
+body.player-theme h2 { font-size: 1.4rem; border-bottom: 2px solid var(--color-accent-purple); padding-bottom: 0.3em; }
+body.player-theme h3 { font-size: 1.15rem; color: var(--color-accent-green); }
+
+body.player-theme a {
+  color: var(--color-accent-cyan);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s;
+}
+body.player-theme a:hover {
+  color: #ffffff;
+  border-bottom-color: var(--color-accent-cyan);
+  text-shadow: 0 0 8px var(--color-accent-cyan);
+}
+
+body.player-theme button,
+body.player-theme .btn,
+body.player-theme input[type="submit"] {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.6em 1.8em;
+  border: none;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--color-accent-purple), var(--color-accent-pink));
+  color: #fff;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: all 0.2s;
+  box-shadow: 0 0 15px var(--color-accent-purple);
+}
+body.player-theme button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px var(--color-accent-pink);
+}
+
+body.player-theme input[type="text"],
+body.player-theme input[type="search"],
+body.player-theme textarea,
+body.player-theme select {
+  font-family: var(--font-body);
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--color-accent-purple);
+  color: var(--color-text-primary);
+  border-radius: 4px;
+  padding: 0.5em 0.8em;
+  font-size: 1rem;
+}
+body.player-theme input:focus,
+body.player-theme textarea:focus {
+  border-color: var(--color-accent-cyan);
+  outline: none;
+  box-shadow: 0 0 15px var(--color-accent-cyan);
+}
+
+body.player-theme .card,
+body.player-theme .panel {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-accent-purple);
+  border-radius: 8px;
+  box-shadow: 0 0 20px #9d4edd40;
+  position: relative;
+  overflow: hidden;
+}
+body.player-theme .card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-accent-cyan), transparent);
+  animation: scan 3s linear infinite;
+}
+
+@keyframes scan {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+body.player-theme .sidebar {
+  background: var(--color-bg-secondary);
+  border-right: 2px solid var(--color-accent-purple);
+}
+
+body.player-theme .message-user {
+  background: rgba(157, 78, 221, 0.15);
+  border-left: 3px solid var(--color-accent-purple);
+  border-radius: 6px;
+  padding: 0.8em 1em;
+}
+
+body.player-theme .message-assistant {
+  background: rgba(0, 229, 255, 0.15);
+  border-left: 3px solid var(--color-accent-cyan);
+  border-radius: 6px;
+  padding: 0.8em 1em;
+}
+
+/* Stats bars */
+body.player-theme .stat-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+body.player-theme .stat-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent-green), var(--color-accent-cyan));
+  border-radius: 4px;
+}
+
+/* Tier list styling */
+body.player-theme .tier-s { background: linear-gradient(135deg, #ffd700, #ff9500); color: #000; }
+body.player-theme .tier-a { background: linear-gradient(135deg, #00ff88, #00cc66); color: #000; }
+body.player-theme .tier-b { background: linear-gradient(135deg, #00e5ff, #0099cc); color: #000; }
+body.player-theme .tier-c { background: linear-gradient(135deg, #9d4edd, #6a00ff); color: #fff; }
+body.player-theme .tier-d { background: linear-gradient(135deg, #ff2a6d, #cc0052); color: #fff; }
+
+body.player-theme code {
+  background: rgba(0, 229, 255, 0.15);
+  color: var(--color-accent-cyan);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  border: 1px solid var(--color-accent-cyan);
+}
+
+body.player-theme pre {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--color-accent-purple);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+}
+
+body.player-theme blockquote {
+  border-left: 3px solid var(--color-accent-green);
+  background: rgba(0, 255, 136, 0.08);
+  padding: 0.8em 1.2em;
+  border-radius: 0 6px 6px 0;
+  color: var(--color-text-secondary);
+}
+
+body.player-theme ::-webkit-scrollbar { width: 10px; }
+body.player-theme ::-webkit-scrollbar-track { background: var(--color-bg-primary); }
+body.player-theme ::-webkit-scrollbar-thumb { 
+  background: linear-gradient(var(--color-accent-purple), var(--color-accent-pink));
+  border-radius: 5px;
+}
+
+body.player-theme hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-accent-purple), var(--color-accent-cyan), var(--color-accent-purple), transparent);
+  margin: 1.5em 0;
+}
+
+body.player-theme .loading::after {
+  content: "🎮 Loading...";
+  color: var(--color-accent-cyan);
+  font-family: var(--font-heading);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; text-shadow: 0 0 5px var(--color-accent-cyan); }
+  50% { opacity: 1; text-shadow: 0 0 15px var(--color-accent-cyan); }
+}
+
+@media (max-width: 768px) {
+  body.player-theme h1 { font-size: 1.4rem; }
+  body.player-theme h2 { font-size: 1.2rem; }
+  body.player-theme { font-size: 15px; }
+}

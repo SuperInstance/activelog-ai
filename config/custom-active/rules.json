@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "trigger": "/workout",
+      "description": "Generate a structured workout with warmup, main sets, and cooldown",
+      "action": "escalation"
+    },
+    {
+      "trigger": "/nutrition",
+      "description": "Nutrition planning with macro targets, meal timing, and supplement guidance",
+      "action": "escalation"
+    },
+    {
+      "trigger": "/progress",
+      "description": "Log and review training progress, measurements, and personal records",
+      "action": "cheap"
+    },
+    {
+      "trigger": "/plan",
+      "description": "Design a multi-week training program with periodization",
+      "action": "escalation"
+    },
+    {
+      "trigger": "/exercise",
+      "description": "Look up exercise details: form cues, variations, muscles worked, common mistakes",
+      "action": "cheap"
+    },
+    {
+      "trigger": "/meal",
+      "description": "Suggest a meal or snack fitting current macro targets and preferences",
+      "action": "cheap"
+    },
+    {
+      "trigger": "/recovery",
+      "description": "Recovery assessment: sleep, deload timing, active recovery, stress management",
+      "action": "cheap"
+    },
+    {
+      "trigger": "/pr",
+      "description": "Celebrate and log a new personal record",
+      "action": "cheap"
+    }
+  ]
+}

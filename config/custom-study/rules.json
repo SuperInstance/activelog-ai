@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Explain Concept",
+    "pattern": "^/explain|^(explain|what is|what are|what does|define|meaning of|tell me about|how does .* work|why does)",
+    "template": "study_concept",
+    "action": "escalation",
+    "confidence": 0.90,
+    "description": "Deep concept explanation using Socratic method"
+  },
+  {
+    "name": "Generate Quiz",
+    "pattern": "^/quiz|^(quiz|test me|question|practice problem|give me a problem|exam prep)",
+    "template": "study_quiz",
+    "action": "cheap",
+    "confidence": 0.88,
+    "description": "Generate practice questions at appropriate difficulty"
+  },
+  {
+    "name": "Create Flashcards",
+    "pattern": "^/flashcard|^(flashcard|flash card|card|review terms|key terms|vocabulary|formula sheet|cheat sheet)",
+    "template": "study_flashcard",
+    "action": "cheap",
+    "confidence": 0.87,
+    "description": "Create spaced-repetition flashcards for review"
+  },
+  {
+    "name": "Summarize Material",
+    "pattern": "^/summarize|^(summarize|summary|tldr|tl;dr|key points|main ideas|notes on|outline of)",
+    "template": "study_concept",
+    "action": "cheap",
+    "confidence": 0.85,
+    "description": "Condense study material into key concepts"
+  },
+  {
+    "name": "Essay Assistance",
+    "pattern": "^/essay|^(essay|paper|thesis|argument|persuasive|analytical|compare and contrast|thesis statement|intro|conclusion)",
+    "template": "study_essay_outline",
+    "action": "escalation",
+    "confidence": 0.89,
+    "description": "Essay structure, thesis development, and writing guidance"
+  },
+  {
+    "name": "Math Help",
+    "pattern": "^/math|^(math|calculus|algebra|equation|solve|integral|derivative|proof|theorem|formula|compute|calculate)",
+    "template": "study_concept",
+    "action": "escalation",
+    "confidence": 0.91,
+    "description": "Mathematical problem-solving with step-by-step guidance"
+  },
+  {
+    "name": "Citation Help",
+    "pattern": "^/citation|^(cite|citation|reference|bibliography|APA|MLA|Chicago|source|footnote|works cited)",
+    "template": "study_essay_outline",
+    "action": "escalation",
+    "confidence": 0.88,
+    "description": "Citation formatting and source integration"
+  },
+  {
+    "name": "Study Schedule",
+    "pattern": "^/schedule|^(schedule|plan|study plan|exam schedule|finals|midterms|study calendar|pomodoro|study session)",
+    "template": "study_schedule",
+    "action": "cheap",
+    "confidence": 0.86,
+    "description": "Create study schedules and time management plans"
+  }
+]

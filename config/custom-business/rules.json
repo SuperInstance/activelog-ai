@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "trigger": "/analysis",
+      "description": "Deep-dive business analysis with data interpretation and trend identification",
+      "action": "escalation"
+    },
+    {
+      "trigger": "/strategy",
+      "description": "Strategic planning with frameworks, prioritization, and tradeoff analysis",
+      "action": "escalation"
+    },
+    {
+      "trigger": "/financials",
+      "description": "Financial modeling — revenue, costs, projections, and scenario analysis",
+      "action": "escalation"
+    },
+    {
+      "trigger": "/market",
+      "description": "Market research: sizing, trends, customer segments, and opportunity assessment",
+      "action": "cheap"
+    },
+    {
+      "trigger": "/competitor",
+      "description": "Competitive analysis: positioning, strengths, gaps, and differentiation opportunities",
+      "action": "cheap"
+    },
+    {
+      "trigger": "/pitch",
+      "description": "Pitch deck or pitch narrative generation — problem, solution, market, traction, ask",
+      "action": "compare"
+    },
+    {
+      "trigger": "/roadmap",
+      "description": "Product or business roadmap with milestones, dependencies, and timelines",
+      "action": "escalation"
+    },
+    {
+      "trigger": "/kpi",
+      "description": "KPI dashboard design: define, track, and interpret key metrics",
+      "action": "cheap"
+    }
+  ]
+}

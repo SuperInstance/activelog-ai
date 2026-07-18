@@ -1,0 +1,4 @@
+# Merge strategy for playerlog.ai fork
+app/ merge=theirs
+config/custom-player/ merge=ours
+docs/ merge=theirs

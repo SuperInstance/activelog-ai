@@ -1,0 +1,4 @@
+# Merge strategy for makerlog.ai fork
+app/ merge=theirs
+config/custom-maker/ merge=ours
+docs/ merge=theirs

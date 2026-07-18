@@ -1,0 +1,2 @@
+app/ merge=theirs
+config/ merge=ours

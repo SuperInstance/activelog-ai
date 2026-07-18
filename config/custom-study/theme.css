@@ -1,0 +1,268 @@
+/* ============================================================
+   StudyLog.ai Theme — Academic Blue & White
+   Override file for log-origin base styles.
+   Applied when body has class "study-theme".
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
+
+body.study-theme {
+  --color-navy: #1b2a4a;
+  --color-navy-light: #2d4270;
+  --color-navy-dark: #0f1a30;
+  --color-accent-blue: #3b82f6;
+  --color-accent-blue-light: #60a5fa;
+  --color-accent-blue-dark: #2563eb;
+  --color-accent-teal: #14b8a6;
+  --color-accent-amber: #f59e0b;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+  --color-bg-card: #ffffff;
+  --color-bg-input: #ffffff;
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #475569;
+  --color-text-accent: #1b2a4a;
+  --color-text-muted: #94a3b8;
+  --color-border-light: #e2e8f0;
+  --color-border-medium: #cbd5e1;
+  --color-border-heavy: #94a3b8;
+  --font-heading: 'Merriweather', 'Georgia', serif;
+  --font-body: 'Source Sans 3', 'Helvetica Neue', sans-serif;
+}
+
+body.study-theme {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+body.study-theme h1,
+body.study-theme h2,
+body.study-theme h3,
+body.study-theme h4 {
+  font-family: var(--font-heading);
+  color: var(--color-navy);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+body.study-theme h1 { font-size: 1.7rem; border-bottom: 3px solid var(--color-accent-blue); padding-bottom: 0.4em; }
+body.study-theme h2 { font-size: 1.35rem; border-bottom: 2px solid var(--color-border-light); padding-bottom: 0.25em; }
+body.study-theme h3 { font-size: 1.1rem; color: var(--color-navy-light); }
+
+body.study-theme a {
+  color: var(--color-accent-blue-dark);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s;
+}
+body.study-theme a:hover {
+  color: var(--color-accent-blue);
+  border-bottom-color: var(--color-accent-blue);
+}
+
+body.study-theme button,
+body.study-theme .btn,
+body.study-theme input[type="submit"] {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.6em 1.5em;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-navy);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+body.study-theme button:hover,
+body.study-theme .btn:hover {
+  background: var(--color-navy-light);
+  box-shadow: 0 4px 12px #1b2a4a30;
+}
+
+body.study-theme input[type="text"],
+body.study-theme input[type="search"],
+body.study-theme textarea,
+body.study-theme select {
+  font-family: var(--font-body);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-medium);
+  color: var(--color-text-primary);
+  border-radius: 6px;
+  padding: 0.5em 0.8em;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+body.study-theme input:focus,
+body.study-theme textarea:focus {
+  border-color: var(--color-accent-blue);
+  outline: none;
+  box-shadow: 0 0 0 3px #3b82f620;
+}
+
+/* Note Card Layout */
+body.study-theme .card,
+body.study-theme .panel {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px #00000008, 0 1px 2px #00000005;
+  padding: 1.2em 1.4em;
+}
+
+body.study-theme .card:hover {
+  box-shadow: 0 4px 12px #00000010, 0 2px 4px #00000008;
+}
+
+body.study-theme .sidebar {
+  background: var(--color-navy);
+  color: #fff;
+}
+
+/* Message Bubbles */
+body.study-theme .message-user {
+  background: var(--color-tertiary);
+  border-left: 3px solid var(--color-accent-blue);
+  border-radius: 6px;
+  padding: 0.8em 1em;
+}
+
+body.study-theme .message-assistant {
+  background: var(--color-bg-card);
+  border-left: 3px solid var(--color-accent-teal);
+  border-radius: 6px;
+  padding: 0.8em 1em;
+}
+
+/* Flashcard styling */
+body.study-theme .flashcard {
+  background: linear-gradient(135deg, var(--color-navy), var(--color-navy-light));
+  color: #fff;
+  border-radius: 10px;
+  padding: 1.5em 2em;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.3s;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body.study-theme .flashcard:hover {
+  transform: scale(1.02);
+}
+
+/* Quiz styling */
+body.study-theme .quiz-question {
+  background: var(--color-bg-card);
+  border: 2px solid var(--color-accent-blue);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  margin: 0.5em 0;
+}
+body.study-theme .quiz-option {
+  padding: 0.5em 0.8em;
+  margin: 0.3em 0;
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+body.study-theme .quiz-option:hover {
+  border-color: var(--color-accent-blue);
+  background: #3b82f610;
+}
+body.study-theme .quiz-correct {
+  border-color: var(--color-success) !important;
+  background: #22c55e15 !important;
+}
+body.study-theme .quiz-incorrect {
+  border-color: var(--color-danger) !important;
+  background: #ef444415 !important;
+}
+
+/* Key term highlight */
+body.study-theme .key-term {
+  color: var(--color-navy);
+  font-weight: 700;
+  border-bottom: 2px dotted var(--color-accent-amber);
+}
+
+/* Progress indicator */
+body.study-theme .progress-bar {
+  height: 6px;
+  background: var(--color-border-light);
+  border-radius: 3px;
+  overflow: hidden;
+}
+body.study-theme .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent-blue), var(--color-accent-teal));
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* Blockquotes */
+body.study-theme blockquote {
+  border-left: 4px solid var(--color-accent-amber);
+  background: #f59e0b08;
+  padding: 0.8em 1.2em;
+  margin: 0.8em 0;
+  border-radius: 0 6px 6px 0;
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+body.study-theme code {
+  background: var(--color-tertiary);
+  color: var(--color-navy);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+body.study-theme pre {
+  background: var(--color-navy-dark);
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+}
+
+body.study-theme ::-webkit-scrollbar { width: 8px; }
+body.study-theme ::-webkit-scrollbar-track { background: var(--color-bg-secondary); }
+body.study-theme ::-webkit-scrollbar-thumb { background: var(--color-border-heavy); border-radius: 4px; }
+
+body.study-theme hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border-medium), transparent);
+  margin: 1.5em 0;
+}
+
+body.study-theme .loading::after {
+  content: "📚 Thinking about that...";
+  color: var(--color-text-muted);
+  font-style: italic;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  body.study-theme h1 { font-size: 1.3rem; }
+  body.study-theme h2 { font-size: 1.1rem; }
+  body.study-theme { font-size: 15px; }
+}

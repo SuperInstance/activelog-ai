@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Build Optimization",
+    "pattern": "^/build|^(build|loadout|gear|items|runes|talents|perks|skills|stat|attribute|optimize|best in slot|bis)",
+    "template": "player_build",
+    "action": "compare",
+    "confidence": 0.90,
+    "description": "Character/agent build optimization and gear selection"
+  },
+  {
+    "name": "Strategy Guide",
+    "pattern": "^/strategy|^(strategy|tactics|how to|guide|tips|improve|get better|win|counter|matchup|play against)",
+    "template": "player_strategy",
+    "action": "escalation",
+    "confidence": 0.88,
+    "description": "Game strategy, tactics, and improvement guides"
+  },
+  {
+    "name": "Meta Analysis",
+    "pattern": "^/meta|^(meta|tier list|what's good|strong|op|broken|viable|patch|current|best|worst)",
+    "template": "player_meta",
+    "action": "cheap",
+    "confidence": 0.87,
+    "description": "Current meta analysis and tier lists"
+  },
+  {
+    "name": "Game Guide",
+    "pattern": "^/guide|^(guide|walkthrough|how to beat|boss|quest|mission|puzzle|secret|hidden|collectible|achievement)",
+    "template": "player_guide",
+    "action": "cheap",
+    "confidence": 0.86,
+    "description": "Game guides, walkthroughs, and secrets"
+  },
+  {
+    "name": "Optimization",
+    "pattern": "^/optimize|^(optimize|settings|fps|performance|graphics|keybinds|controls|sensitivity|dpi|crosshair)",
+    "template": "player_optimize",
+    "action": "escalation",
+    "confidence": 0.89,
+    "description": "Game performance and settings optimization"
+  },
+  {
+    "name": "Compare",
+    "pattern": "^/compare|^(compare|vs|versus|which is better|difference between|pros and cons)",
+    "template": "player_build",
+    "action": "compare",
+    "confidence": 0.85,
+    "description": "Compare characters, items, or strategies"
+  },
+  {
+    "name": "Lore",
+    "pattern": "^/lore|^(lore|story|background|history|timeline|character|who is|what happened|ending)",
+    "template": "player_guide",
+    "action": "cheap",
+    "confidence": 0.84,
+    "description": "Game lore, story, and character backgrounds"
+  },
+  {
+    "name": "Patch Notes",
+    "pattern": "^/patch|^(patch|update|notes|changes|nerf|buff|balance|hotfix)",
+    "template": "player_meta",
+    "action": "cheap",
+    "confidence": 0.88,
+    "description": "Patch note analysis and impact assessment"
+  }
+]

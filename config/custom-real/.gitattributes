@@ -1,0 +1,4 @@
+# Merge strategy for reallog.ai fork
+app/ merge=theirs
+config/custom-real/ merge=ours
+docs/ merge=theirs
